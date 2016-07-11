@@ -1,15 +1,18 @@
 {
-    "author": "kelii@pridesix.com",
+    "author": "Kelii Deleon",
     "dependencies": {},
     "keywords": [],
     "name": "simple-face",
     "pebble": {
         "capabilities": [
-            ""
+            "location"
         ],
         "displayName": "Simple Face",
         "enableMultiJS": true,
-        "messageKeys": [],
+        "messageKeys": [
+            "TEMPERATURE",
+            "CONDITIONS"
+        ],
         "projectType": "native",
         "resources": {
             "media": [
@@ -43,7 +46,7 @@
         "targetPlatforms": [
             "aplite"
         ],
-        "uuid": "40b1c9bc-d134-4293-9aba-261f6e9951da",
+        "uuid": "1bb8a52d-ef99-4963-aa17-56a5fd682116",
         "watchapp": {
             "watchface": true
         }
