@@ -1,0 +1,52 @@
+{
+    "author": "kelii@pridesix.com",
+    "dependencies": {},
+    "keywords": [],
+    "name": "simple-face",
+    "pebble": {
+        "capabilities": [
+            ""
+        ],
+        "displayName": "Simple Face",
+        "enableMultiJS": true,
+        "messageKeys": [],
+        "projectType": "native",
+        "resources": {
+            "media": [
+                {
+                    "file": "fonts/Solaria Font",
+                    "name": "SOLARIA_FONT_20",
+                    "targetPlatforms": [
+                        "aplite"
+                    ],
+                    "type": "font"
+                },
+                {
+                    "file": "fonts/Solaria Font",
+                    "name": "SOLARIA_FONT_40",
+                    "targetPlatforms": [
+                        "aplite"
+                    ],
+                    "type": "font"
+                },
+                {
+                    "file": "fonts/Solaria Font",
+                    "name": "SOLARIA_FONT_12",
+                    "targetPlatforms": [
+                        "aplite"
+                    ],
+                    "type": "font"
+                }
+            ]
+        },
+        "sdkVersion": "3",
+        "targetPlatforms": [
+            "aplite"
+        ],
+        "uuid": "40b1c9bc-d134-4293-9aba-261f6e9951da",
+        "watchapp": {
+            "watchface": true
+        }
+    },
+    "version": "1.0.0"
+}
