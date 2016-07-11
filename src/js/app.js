@@ -1,5 +1,3 @@
-var muyAPIKey = cab77e2a73537bd19c09222813f47e9b;
-
 var xhrRequest = function (url, type, callback) {
   var xhr = new XMLHttpRequest();
   xhr.onload = function () {
@@ -12,7 +10,7 @@ var xhrRequest = function (url, type, callback) {
 function locationSuccess(pos) {
   // Construct URL
   var url = 'http://api.openweathermap.org/data/2.5/weather?lat=' +
-      pos.coords.latitude + '&lon=' + pos.coords.longitude + '&appid=' + myAPIKey;
+      pos.coords.latitude + '&lon=' + pos.coords.longitude + '&appid=' + 'cab77e2a73537bd19c09222813f47e9b';
 
   // Send request to OpenWeatherMap
   xhrRequest(url, 'GET', 
