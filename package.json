@@ -17,6 +17,14 @@
         "resources": {
             "media": [
                 {
+                    "file": "images/Sunny PNG",
+                    "name": "SUNNY_IMAGE",
+                    "targetPlatforms": [
+                        "aplite"
+                    ],
+                    "type": "bitmap"
+                },
+                {
                     "file": "fonts/Solaria Font",
                     "name": "SOLARIA_FONT_20",
                     "targetPlatforms": [
@@ -42,7 +50,7 @@
                 },
                 {
                     "file": "fonts/Pirulen Font",
-                    "name": "PIRULEN_FONT_20",
+                    "name": "PIRULEN_FONT_35",
                     "targetPlatforms": [
                         "aplite"
                     ],
@@ -58,7 +66,7 @@
                 },
                 {
                     "file": "fonts/Pirulen Font",
-                    "name": "PIRULEN_FONT_40",
+                    "name": "PIRULEN_FONT_20",
                     "targetPlatforms": [
                         "aplite"
                     ],

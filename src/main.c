@@ -10,6 +10,7 @@ static GFont s_time_font;
 static GFont s_date_font;
 static GFont s_wthr_font;
 static int 	 s_battery_level;
+static bool  pirulenIsSet;
 
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
 	// Store incoming information
@@ -23,7 +24,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
 
 	// If all data is available, use it
 	if(temp_tuple || conditions_tuple) {
-  		snprintf(temperature_buffer, sizeof(temperature_buffer), "%dF", (int)temp_tuple->value->int32);
+  		snprintf(temperature_buffer, sizeof(temperature_buffer), "%d°F", (int)temp_tuple->value->int32);
   		snprintf(conditions_buffer, sizeof(conditions_buffer), "%s", conditions_tuple->value->cstring);
 		
 		// Assemble full string and display
@@ -103,7 +104,7 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed){
 	}
 	
 	if ((units_changed & HOUR_UNIT) != 0) {
-		vibes_double_pulse();
+		vibes_long_pulse();
 	}
 	
 	if ((units_changed & DAY_UNIT) != 0) {
@@ -132,29 +133,37 @@ static void main_window_load(Window *window) {
 	// Change background color
 	window_set_background_color(window, GColorBlack);
 	
-	// Create the TextLayer with specific bounds
-	s_time_layer = text_layer_create(GRect(0, 25,
-		bounds.size.w , 45));
-	
-	// Create battery meter Layer
-	s_battery_layer = layer_create(GRect(10, 69, 124, 2));
-	layer_set_update_proc(s_battery_layer, battery_update_proc);
-	
-	//Create the date TextLayer
-	s_date_layer = text_layer_create(GRect(0, 70, bounds.size.w , 15));
-	
-	// Create weather Layer
-	s_weather_layer = text_layer_create(GRect(0, 100, bounds.size.w, 25));
-	
-	// Create GFont
-	s_time_font = fonts_load_custom_font (resource_get_handle(RESOURCE_ID_SOLARIA_FONT_40));
-	s_date_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_SOLARIA_FONT_12));
-	s_wthr_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_SOLARIA_FONT_20));
+	if (pirulenIsSet) {
+		// Create the Layers
+		s_time_layer = text_layer_create(GRect(0, 31, bounds.size.w , 45));
+		s_battery_layer = layer_create(GRect(10, 69, 124, 2));
+		layer_set_update_proc(s_battery_layer, battery_update_proc);
+		s_date_layer = text_layer_create(GRect(0, 70, bounds.size.w , 15));
+		s_weather_layer = text_layer_create(GRect(0, 101, bounds.size.w, 25));
+		
+		// Create GFont
+		s_time_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_PIRULEN_FONT_35));
+		s_date_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_PIRULEN_FONT_12));
+		s_wthr_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_PIRULEN_FONT_20));
+	} else {
+		// Create the Layers
+		s_time_layer = text_layer_create(GRect(0, 25, bounds.size.w , 45));
+		s_battery_layer = layer_create(GRect(10, 69, 124, 2));
+		layer_set_update_proc(s_battery_layer, battery_update_proc);
+		s_date_layer = text_layer_create(GRect(0, 69, bounds.size.w , 15));
+		s_weather_layer = text_layer_create(GRect(0, 100, bounds.size.w, 25));
+		
+		// Create GFont
+		s_time_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_SOLARIA_FONT_40));
+		s_date_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_SOLARIA_FONT_12));
+		s_wthr_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_SOLARIA_FONT_20));
+	}
 	
 	// Change timeLayers defaults
 	text_layer_set_background_color(s_time_layer, GColorClear);
 	text_layer_set_text_color(s_time_layer, GColorWhite);
 	text_layer_set_font(s_time_layer, s_time_font);
+	text_layer_set_text(s_time_layer, "00:00");
 	text_layer_set_text_alignment(s_time_layer, GTextAlignmentCenter);
 	
 	// Change dateLayers defaults
@@ -188,10 +197,11 @@ static void main_window_unload(Window *window) {
 	fonts_unload_custom_font(s_time_font);
 	fonts_unload_custom_font(s_date_font);
 	fonts_unload_custom_font(s_wthr_font);
-
 }
 
 static void init() {
+	pirulenIsSet = false;
+	
 	// Create main Window element and assign to pointer
 	s_main_window = window_create();
 	
