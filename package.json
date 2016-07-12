@@ -17,6 +17,30 @@
         "resources": {
             "media": [
                 {
+                    "file": "fonts/Solaria Font",
+                    "name": "SOLARIA_FONT_20",
+                    "targetPlatforms": [
+                        "aplite"
+                    ],
+                    "type": "font"
+                },
+                {
+                    "file": "fonts/Solaria Font",
+                    "name": "SOLARIA_FONT_12",
+                    "targetPlatforms": [
+                        "aplite"
+                    ],
+                    "type": "font"
+                },
+                {
+                    "file": "fonts/Solaria Font",
+                    "name": "SOLARIA_FONT_40",
+                    "targetPlatforms": [
+                        "aplite"
+                    ],
+                    "type": "font"
+                },
+                {
                     "file": "fonts/Pirulen Font",
                     "name": "PIRULEN_FONT_20",
                     "targetPlatforms": [

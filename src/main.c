@@ -9,7 +9,7 @@ static TextLayer *s_weather_layer;
 static GFont s_time_font;
 static GFont s_date_font;
 static GFont s_wthr_font;
-static int s_battery_level;
+static int 	 s_battery_level;
 
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
 	// Store incoming information
@@ -23,7 +23,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
 
 	// If all data is available, use it
 	if(temp_tuple || conditions_tuple) {
-  		snprintf(temperature_buffer, sizeof(temperature_buffer), "%d°F", (int)temp_tuple->value->int32);
+  		snprintf(temperature_buffer, sizeof(temperature_buffer), "%dF", (int)temp_tuple->value->int32);
   		snprintf(conditions_buffer, sizeof(conditions_buffer), "%s", conditions_tuple->value->cstring);
 		
 		// Assemble full string and display
@@ -57,8 +57,7 @@ static void battery_update_proc(Layer *layer, GContext *ctx) {
 	
 	//Draw the bar
 	graphics_context_set_fill_color(ctx, GColorWhite);
-	graphics_fill_rect(ctx, GRect(0, 0, width, bounds.size.h), 0, 
-		GCornerNone);
+	graphics_fill_rect(ctx, GRect(0, 0, width, bounds.size.h), 0, GCornerNone);
 }
 
 static void update_time(){
@@ -145,16 +144,12 @@ static void main_window_load(Window *window) {
 	s_date_layer = text_layer_create(GRect(0, 70, bounds.size.w , 15));
 	
 	// Create weather Layer
-	s_weather_layer = text_layer_create(GRect(0, 
-		100, bounds.size.w, 25));
+	s_weather_layer = text_layer_create(GRect(0, 100, bounds.size.w, 25));
 	
 	// Create GFont
-	s_time_font = fonts_get_system_font(resource_get_handle
-		(RESOURCE_ID_PIRULEN_FONT_40));
-	s_date_font = fonts_load_custom_font(resource_get_handle
-		(RESOURCE_ID_PIRULEN_FONT_12));
-	s_wthr_font = fonts_load_custom_font(resource_get_handle
-		(RESOURCE_ID_PIRULEN_FONT_20));
+	s_time_font = fonts_load_custom_font (resource_get_handle(RESOURCE_ID_SOLARIA_FONT_40));
+	s_date_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_SOLARIA_FONT_12));
+	s_wthr_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_SOLARIA_FONT_20));
 	
 	// Change timeLayers defaults
 	text_layer_set_background_color(s_time_layer, GColorClear);
@@ -210,8 +205,7 @@ static void init() {
 	window_stack_push(s_main_window, true);
 	
 	// Register with tickTimerService
-	tick_timer_service_subscribe(MINUTE_UNIT | DAY_UNIT | HOUR_UNIT, 
-		tick_handler);
+	tick_timer_service_subscribe(MINUTE_UNIT | DAY_UNIT | HOUR_UNIT, tick_handler);
 	
 	// Make sure the time is displayed from the start
 	update_time();
