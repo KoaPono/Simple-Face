@@ -19,12 +19,28 @@ function locationSuccess(pos) {
       var json = JSON.parse(responseText);
 
       // Temperature in Kelvin requires adjustment
-      var temperature = Math.round(json.main.temp - 273.15);
+      var temperature = Math.round(json.main.temp * 9/5 - 459.67);
       console.log('Temperature is ' + temperature);
 
       // Conditions
       var conditions = json.weather[0].main;      
       console.log('Conditions are ' + conditions);
+		 
+		 // Assemble dictionary using our keys
+		var dictionary = {
+  			'TEMPERATURE' : temperature,
+  			'CONDITIONS' : conditions
+		};
+		 
+		 // Send to Pebble
+		Pebble.sendAppMessage(dictionary,
+  			function(e) {
+    			console.log('Weather info sent to Pebble successfully!');
+  			},
+  			function(e) {
+    			console.log('Error sending weather info to Pebble!');
+  			}
+		);
     }      
   );
 }
@@ -58,20 +74,4 @@ Pebble.addEventListener('appmessage',
      console.log('AppMessage received!');
 	  getWeather();
   }                     
-);
-
-// Assemble dictionary using our keys
-var dictionary = {
-  'TEMPERATURE': temperature,
-  'CONDITIONS': conditions
-};
-
-// Send to Pebble
-Pebble.sendAppMessage(dictionary,
-  function(e) {
-    console.log('Weather info sent to Pebble successfully!');
-  },
-  function(e) {
-    console.log('Error sending weather info to Pebble!');
-  }
 );

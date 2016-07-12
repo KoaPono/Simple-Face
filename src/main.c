@@ -1,5 +1,4 @@
 #include <pebble.h>
-#include <ctype.h>
 
 // Static Variables
 static Window *s_main_window;
@@ -12,11 +11,45 @@ static GFont s_date_font;
 static GFont s_wthr_font;
 static int s_battery_level;
 
+static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
+	// Store incoming information
+	static char temperature_buffer[8];
+	static char conditions_buffer[32];
+	static char weather_layer_buffer[32];
+	
+	// Read tuples for data
+	Tuple *temp_tuple = dict_find(iterator, MESSAGE_KEY_TEMPERATURE);
+	Tuple *conditions_tuple = dict_find(iterator, MESSAGE_KEY_CONDITIONS);
+
+	// If all data is available, use it
+	if(temp_tuple || conditions_tuple) {
+  		snprintf(temperature_buffer, sizeof(temperature_buffer), "%d°F", (int)temp_tuple->value->int32);
+  		snprintf(conditions_buffer, sizeof(conditions_buffer), "%s", conditions_tuple->value->cstring);
+		
+		// Assemble full string and display
+		//snprintf(weather_layer_buffer, sizeof(weather_layer_buffer), "%s %s", temperature_buffer, conditions_buffer);
+		snprintf(weather_layer_buffer, sizeof(weather_layer_buffer), "%s", temperature_buffer);
+		text_layer_set_text(s_weather_layer, weather_layer_buffer);
+	}
+}
+
+static void inbox_dropped_callback(AppMessageResult reason, void *context) {
+  APP_LOG(APP_LOG_LEVEL_ERROR, "Message dropped!");
+}
+
+static void outbox_failed_callback(DictionaryIterator *iterator, AppMessageResult reason, void *context) {
+  APP_LOG(APP_LOG_LEVEL_ERROR, "Outbox send failed!");
+}
+
+static void outbox_sent_callback(DictionaryIterator *iterator, void *context) {
+  APP_LOG(APP_LOG_LEVEL_INFO, "Outbox send success!");
+}
+
 static void battery_update_proc(Layer *layer, GContext *ctx) {
 	GRect bounds = layer_get_bounds(layer);
 	
 	//Find the width of the bar
-	int width = (int)(float)(((float)s_battery_level / 100.0f) * 114.0f);
+	int width = (int)(float)(((float)s_battery_level / 100.0f) * 124.0f);
 	
 	// Draw the background
 	graphics_context_set_fill_color(ctx, GColorBlack);
@@ -26,6 +59,70 @@ static void battery_update_proc(Layer *layer, GContext *ctx) {
 	graphics_context_set_fill_color(ctx, GColorWhite);
 	graphics_fill_rect(ctx, GRect(0, 0, width, bounds.size.h), 0, 
 		GCornerNone);
+}
+
+static void update_time(){
+	// Get a tm struct
+	time_t temp = time(NULL);
+	struct tm *tick_time = localtime(&temp);
+	
+	// Write the current hours and minutes into the buffer
+	static char s_buffer[8];
+	strftime(s_buffer, sizeof(s_buffer), clock_is_24h_style() ? "%H:%M" :
+		"%I:%M", tick_time);
+	
+	//Dispay this time on the TextLayer
+	text_layer_set_text(s_time_layer, s_buffer);
+}
+
+static void update_date() {
+	// Get a tm struct
+	time_t temp = time(NULL);
+	struct tm *tick_time = localtime(&temp);
+	
+	//bool isSecondsEven = atoi("%S") % 2 == 0;
+	
+	// Write the current hours and minutes into the buffer
+	static char s_buffer[16];
+	strftime(s_buffer, sizeof(s_buffer), "%a %b %d", tick_time);
+	
+	//Dispay this time on the TextLayer
+	text_layer_set_text(s_date_layer, s_buffer);
+}
+
+static void battery_callback(BatteryChargeState state) {
+	// revord the new battery level
+	s_battery_level = state.charge_percent;
+	
+	// Update meter
+	layer_mark_dirty(s_battery_layer);
+}
+
+static void tick_handler(struct tm *tick_time, TimeUnits units_changed){
+	if ((units_changed & MINUTE_UNIT) != 0) {
+		update_time();
+	}
+	
+	if ((units_changed & HOUR_UNIT) != 0) {
+		vibes_double_pulse();
+	}
+	
+	if ((units_changed & DAY_UNIT) != 0) {
+		update_date();
+	}
+	
+	// Get weather update every 30 minutes
+	if(tick_time->tm_min % 30 == 0) {
+  		// Begin dictionary
+  		DictionaryIterator *iter;
+ 	 	app_message_outbox_begin(&iter);
+
+  		// Add a key-value pair
+  		dict_write_uint8(iter, 0, 0);
+
+  		// Send the message!
+  		app_message_outbox_send();
+	}
 }
 
 static void main_window_load(Window *window) {
@@ -41,7 +138,7 @@ static void main_window_load(Window *window) {
 		bounds.size.w , 45));
 	
 	// Create battery meter Layer
-	s_battery_layer = layer_create(GRect(14, 69, 115, 2));
+	s_battery_layer = layer_create(GRect(10, 69, 124, 2));
 	layer_set_update_proc(s_battery_layer, battery_update_proc);
 	
 	//Create the date TextLayer
@@ -52,12 +149,12 @@ static void main_window_load(Window *window) {
 		100, bounds.size.w, 25));
 	
 	// Create GFont
-	s_time_font = fonts_load_custom_font(resource_get_handle
-		(RESOURCE_ID_SOLARIA_FONT_40));
+	s_time_font = fonts_get_system_font(resource_get_handle
+		(RESOURCE_ID_PIRULEN_FONT_40));
 	s_date_font = fonts_load_custom_font(resource_get_handle
-		(RESOURCE_ID_SOLARIA_FONT_12));
+		(RESOURCE_ID_PIRULEN_FONT_12));
 	s_wthr_font = fonts_load_custom_font(resource_get_handle
-		(RESOURCE_ID_SOLARIA_FONT_20));
+		(RESOURCE_ID_PIRULEN_FONT_20));
 	
 	// Change timeLayers defaults
 	text_layer_set_background_color(s_time_layer, GColorClear);
@@ -98,95 +195,6 @@ static void main_window_unload(Window *window) {
 	fonts_unload_custom_font(s_wthr_font);
 
 }
-
-static void battery_callback(BatteryChargeState state) {
-	// revord the new battery level
-	s_battery_level = state.charge_percent;
-	
-	// Update meter
-	layer_mark_dirty(s_battery_layer);
-}
-
-static void update_time(){
-	// Get a tm struct
-	time_t temp = time(NULL);
-	struct tm *tick_time = localtime(&temp);
-	
-	//bool isSecondsEven = atoi("%S") % 2 == 0;
-	
-	// Write the current hours and minutes into the buffer
-	static char s_buffer[8];
-	strftime(s_buffer, sizeof(s_buffer), clock_is_24h_style() ? "%H:%M" :
-		"%I:%M", tick_time);
-	
-	//Dispay this time on the TextLayer
-	text_layer_set_text(s_time_layer, s_buffer);
-}
-
-static void update_date() {
-	// Get a tm struct
-	time_t temp = time(NULL);
-	struct tm *tick_time = localtime(&temp);
-	
-	//bool isSecondsEven = atoi("%S") % 2 == 0;
-	
-	// Write the current hours and minutes into the buffer
-	static char s_buffer[16];
-	strftime(s_buffer, sizeof(s_buffer), "%a %b %d", tick_time);
-	
-	//Dispay this time on the TextLayer
-	text_layer_set_text(s_date_layer, s_buffer);
-}
-
-static void tick_handler(struct tm *tick_time, TimeUnits units_changed){
-	if ((units_changed & MINUTE_UNIT) != 0) {
-		update_time();
-	}
-	
-	if ((units_changed & HOUR_UNIT) != 0) {
-		vibes_double_pulse();
-	}
-	
-	if ((units_changed & DAY_UNIT) != 0) {
-		update_date();
-	}
-}
-
-static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
-	// Store incoming information
-	static char temperature_buffer[8];
-	static char conditions_buffer[32];
-	static char weather_layer_buffer[32];
-	
-	// Read tuples for data
-	Tuple *temp_tuple = dict_find(iterator, MESSAGE_KEY_TEMPERATURE);
-	Tuple *conditions_tuple = dict_find(iterator, MESSAGE_KEY_CONDITIONS);
-
-	// If all data is available, use it
-	if(temp_tuple && conditions_tuple) {
-  		snprintf(temperature_buffer, sizeof(temperature_buffer), "%dC", (int)temp_tuple->value->int32);
-  		snprintf(conditions_buffer, sizeof(conditions_buffer), "%s", conditions_tuple->value->cstring);
-		
-		// Assemble full string and display
-		snprintf(weather_layer_buffer, sizeof(weather_layer_buffer), "%s, %s", temperature_buffer, conditions_buffer);
-		text_layer_set_text(s_weather_layer, weather_layer_buffer);
-
-	}
-
-}
-
-static void inbox_dropped_callback(AppMessageResult reason, void *context) {
-  APP_LOG(APP_LOG_LEVEL_ERROR, "Message dropped!");
-}
-
-static void outbox_failed_callback(DictionaryIterator *iterator, AppMessageResult reason, void *context) {
-  APP_LOG(APP_LOG_LEVEL_ERROR, "Outbox send failed!");
-}
-
-static void outbox_sent_callback(DictionaryIterator *iterator, void *context) {
-  APP_LOG(APP_LOG_LEVEL_INFO, "Outbox send success!");
-}
-
 
 static void init() {
 	// Create main Window element and assign to pointer
